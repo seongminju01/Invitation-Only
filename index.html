@@ -36,13 +36,11 @@
       background: #050509;
     }
 
-    /* 고정 배경 */
     .poster-bg {
       width: 100%;
       display: block;
     }
 
-    /* 텍스트 레이어 공통 */
     .text-layer {
       position: absolute;
       inset: 0;
@@ -51,12 +49,10 @@
       height: 100%;
       object-fit: contain;
       pointer-events: none;
-
       opacity: 0;
-      transition: opacity 0.6s ease; /* 빠른 페이드 */
+      transition: opacity 0.6s ease;
     }
 
-    /* 현재 보여지는 레이어 */
     .text-layer.active {
       opacity: 1;
     }
@@ -74,76 +70,112 @@
       text-align: center;
       margin-top: 4px;
     }
+
+    .apply-area {
+      margin-top: 14px;
+      text-align: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+    }
+
+    .apply-area.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .apply-button {
+      display: inline-block;
+      padding: 8px 20px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.3);
+      background: #0b0b11;
+      font-size: 0.8rem;
+      text-decoration: none;
+      color: #f5f5f5;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .apply-button:hover {
+      background: #181824;
+    }
   </style>
 </head>
 <body>
   <main class="wrap">
     <div class="poster-frame">
-      <!-- 고정 배경 포스터 -->
       <img class="poster-bg" src="bg-poster.png" alt="The Hidden Stage Background" />
 
-      <!-- 맨 처음에 나올 텍스트 -->
+      <!-- 텍스트 순서: 0 → 5 -->
       <img class="text-layer active" src="text-0.png" alt="Text 0" />
-
-      <!-- 이후 단계 텍스트 -->
       <img class="text-layer" src="text-1.png" alt="Text 1" />
       <img class="text-layer" src="text-2.png" alt="Text 2" />
       <img class="text-layer" src="text-3.png" alt="Text 3" />
       <img class="text-layer" src="text-4.png" alt="Text 4" />
+      <img class="text-layer" src="text-5.png" alt="Text 5" />
     </div>
 
     <p class="hint">
-      화면을 <strong>탭/클릭</strong>하거나 <strong>스크롤</strong>하면 다음 단계로 넘어갑니다.
+      화면을 <strong>탭/클릭</strong>하거나 <strong>스크롤</strong>해 주세요
     </p>
+
     <p class="footer">
       Invitation-Only
     </p>
+
+    <!-- 최종 장에서만 나타나게 -->
+    <div class="apply-area">
+      <a
+        class="apply-button"
+        href="https://forms.gle/Ux5b3xLe1nCsZYDm9"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Application Form
+      </a>
+    </div>
   </main>
 
-  <!-- 배경 음악 (첫 상호작용 시 재생) -->
   <audio id="bgm" src="bgm.mp3" loop></audio>
 
   <script>
-    // 텍스트 레이어들 모으기
     const layers = Array.from(document.querySelectorAll('.text-layer'));
     let currentIndex = 0;
     let lastTriggerTime = 0;
-    const MIN_INTERVAL = 700; // 0.7초 안에는 연속 입력 무시
+    const MIN_INTERVAL = 700;
 
-    // 배경음악 제어
     const bgm = document.getElementById('bgm');
     let bgmStarted = false;
 
     function startMusic() {
-      if (!bgmStarted && bgm) {
-        bgm.volume = 0.7; // 기본 볼륨 (0.0 ~ 1.0)
-        bgm.play().catch(() => {
-          // 브라우저가 막으면 그냥 조용히 무시
-        });
+      if (!bgmStarted) {
+        bgm.volume = 0.7;
+        bgm.play().catch(() => {});
         bgmStarted = true;
       }
     }
 
+    const applyArea = document.querySelector('.apply-area');
+
     function showSlide(index) {
-      layers.forEach((layer, i) => {
-        if (i === index) {
-          layer.classList.add('active');
-        } else {
-          layer.classList.remove('active');
-        }
+      layers.forEach((layer, idx) => {
+        layer.classList.toggle('active', idx === index);
       });
+
+      // 마지막(text-5)에서만 신청 버튼 표시
+      applyArea.classList.toggle('visible', index === layers.length - 1);
     }
 
     function nextSlide() {
       const now = Date.now();
-      if (now - lastTriggerTime < MIN_INTERVAL) return; // 너무 잦은 입력 방지
+      if (now - lastTriggerTime < MIN_INTERVAL) return;
       lastTriggerTime = now;
 
       if (currentIndex < layers.length - 1) {
-        currentIndex += 1;
+        currentIndex++;
         showSlide(currentIndex);
       }
-      // 마지막 슬라이드에서는 더 이상 넘어가지 않음
     }
 
     function handleAdvance() {
@@ -151,21 +183,13 @@
       nextSlide();
     }
 
-    // 클릭 / 탭
-    document.addEventListener('click', () => {
-      handleAdvance();
-    });
-
-    // 키보드 (스페이스, 엔터, 아래/오른쪽 화살표)
+    document.addEventListener('click', handleAdvance);
     document.addEventListener('keydown', (e) => {
-      const keys = [' ', 'Enter', 'ArrowDown', 'ArrowRight'];
-      if (keys.includes(e.key)) {
+      if ([' ', 'Enter', 'ArrowDown', 'ArrowRight'].includes(e.key)) {
         e.preventDefault();
         handleAdvance();
       }
     });
-
-    // 스크롤 휠
     document.addEventListener('wheel', (e) => {
       if (Math.abs(e.deltaY) > 10) {
         e.preventDefault();
@@ -173,7 +197,6 @@
       }
     }, { passive: false });
 
-    // 터치 (모바일 탭/스와이프)
     let touchStartY = null;
     document.addEventListener('touchstart', (e) => {
       if (e.touches.length === 1) {
@@ -183,13 +206,11 @@
 
     document.addEventListener('touchend', (e) => {
       if (touchStartY === null) {
-        handleAdvance(); // 그냥 탭처럼 처리
+        handleAdvance();
         return;
       }
-      const touchEndY = (e.changedTouches[0] || e.touches[0]).clientY;
-      const diffY = touchStartY - touchEndY;
-
-      if (Math.abs(diffY) > 20) {
+      const touchEndY = e.changedTouches[0].clientY;
+      if (Math.abs(touchStartY - touchEndY) > 20) {
         handleAdvance();
       } else {
         handleAdvance();
@@ -197,7 +218,7 @@
       touchStartY = null;
     });
 
-    // 초기 상태 세팅
     showSlide(currentIndex);
   </script>
+</body>
 </html>
