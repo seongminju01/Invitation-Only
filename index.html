@@ -44,7 +44,6 @@
     .text-layer {
       position: absolute;
       inset: 0;
-      margin: auto;
       width: 100%;
       height: 100%;
       object-fit: contain;
@@ -52,119 +51,143 @@
       opacity: 0;
       transition: opacity 0.6s ease;
     }
-
     .text-layer.active {
       opacity: 1;
     }
 
     .hint {
-      font-size: 0.75rem;
-      color: #888;
+      font-size: .75rem;
       text-align: center;
+      color: #777;
       margin-top: 10px;
     }
 
     .footer {
-      font-size: 0.7rem;
-      color: #666;
+      font-size: .7rem;
       text-align: center;
+      color: #555;
       margin-top: 4px;
     }
 
-    .apply-area {
-      margin-top: 14px;
-      text-align: center;
+    /* 포스터 위 버튼 오버레이 (중앙에서 살짝 하단) */
+    .apply-overlay {
+      position: absolute;
+      left: 50%;
+      top: 60%; /* 중앙보다 조금 아래 */
+      transform: translate(-50%, -50%) translateY(12px);
       opacity: 0;
       pointer-events: none;
-      transition: opacity 0.5s ease;
+      transition: opacity 0.5s ease, transform 0.5s ease;
+      z-index: 10;
     }
 
-    .apply-area.visible {
+    /* 등장 시: 페이드 + 위로 살짝 업 */
+    .apply-overlay.visible {
       opacity: 1;
       pointer-events: auto;
+      transform: translate(-50%, -50%) translateY(0);
+      animation: glowPulse 1.8s ease-in-out infinite;
     }
 
+    /* 버튼 스타일: 글로우 */
     .apply-button {
       display: inline-block;
-      padding: 8px 20px;
+      padding: 10px 28px;
       border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.3);
-      background: #0b0b11;
-      font-size: 0.8rem;
+      border: 1px solid rgba(255,255,255,0.5);
+      background: rgba(0,0,0,0.6);
+      font-size: 0.85rem;
       text-decoration: none;
-      color: #f5f5f5;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
+      color: #fefefe;
+      letter-spacing: 0.06em;
+      backdrop-filter: blur(6px);
+      box-shadow:
+        0 0 12px rgba(255,255,255,0.4),
+        0 0 24px rgba(255,255,255,0.25);
     }
 
     .apply-button:hover {
-      background: #181824;
+      background: rgba(255,255,255,0.08);
+      box-shadow:
+        0 0 14px rgba(255,255,255,0.6),
+        0 0 28px rgba(255,255,255,0.35);
+    }
+
+    @keyframes glowPulse {
+      0% {
+        box-shadow:
+          0 0 10px rgba(255,255,255,0.35),
+          0 0 22px rgba(255,255,255,0.2);
+      }
+      50% {
+        box-shadow:
+          0 0 18px rgba(255,255,255,0.7),
+          0 0 32px rgba(255,255,255,0.45);
+      }
+      100% {
+        box-shadow:
+          0 0 10px rgba(255,255,255,0.35),
+          0 0 22px rgba(255,255,255,0.2);
+      }
     }
   </style>
 </head>
 <body>
   <main class="wrap">
     <div class="poster-frame">
-      <img class="poster-bg" src="bg-poster.png" alt="The Hidden Stage Background" />
+      <img class="poster-bg" src="bg-poster.png" alt="bg" />
 
       <!-- 텍스트 순서: 0 → 5 -->
-      <img class="text-layer active" src="text-0.png" alt="Text 0" />
-      <img class="text-layer" src="text-1.png" alt="Text 1" />
-      <img class="text-layer" src="text-2.png" alt="Text 2" />
-      <img class="text-layer" src="text-3.png" alt="Text 3" />
-      <img class="text-layer" src="text-4.png" alt="Text 4" />
-      <img class="text-layer" src="text-5.png" alt="Text 5" />
+      <img class="text-layer active" src="text-0.png" alt="0" />
+      <img class="text-layer" src="text-1.png" alt="1" />
+      <img class="text-layer" src="text-2.png" alt="2" />
+      <img class="text-layer" src="text-3.png" alt="3" />
+      <img class="text-layer" src="text-4.png" alt="4" />
+      <img class="text-layer" src="text-5.png" alt="5" />
+
+      <!-- 포스터 위 버튼 오버레이 -->
+      <div class="apply-overlay">
+        <a
+          class="apply-button"
+          href="https://forms.gle/Ux5b3xLe1nCsZYDm9"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          신청
+        </a>
+      </div>
     </div>
 
-    <p class="hint">
-      화면을 <strong>탭/클릭</strong>하거나 <strong>스크롤</strong>해 주세요
-    </p>
-
-    <p class="footer">
-      Invitation-Only
-    </p>
-
-    <!-- 최종 장에서만 나타나게 -->
-    <div class="apply-area">
-      <a
-        class="apply-button"
-        href="https://forms.gle/Ux5b3xLe1nCsZYDm9"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        Application Form
-      </a>
-    </div>
+    <p class="hint">Tap / Scroll to Continue</p>
+    <p class="footer">Invitation-Only</p>
   </main>
 
   <audio id="bgm" src="bgm.mp3" loop></audio>
 
   <script>
-    const layers = Array.from(document.querySelectorAll('.text-layer'));
+    const layers = document.querySelectorAll('.text-layer');
+    const applyOverlay = document.querySelector('.apply-overlay');
+    const bgm = document.getElementById('bgm');
+
     let currentIndex = 0;
     let lastTriggerTime = 0;
     const MIN_INTERVAL = 700;
-
-    const bgm = document.getElementById('bgm');
-    let bgmStarted = false;
+    let musicStarted = false;
 
     function startMusic() {
-      if (!bgmStarted) {
+      if (!musicStarted && bgm) {
         bgm.volume = 0.7;
-        bgm.play().catch(() => {});
-        bgmStarted = true;
+        bgm.play().catch(()=>{});
+        musicStarted = true;
       }
     }
 
-    const applyArea = document.querySelector('.apply-area');
-
-    function showSlide(index) {
-      layers.forEach((layer, idx) => {
-        layer.classList.toggle('active', idx === index);
+    function showSlide(idx) {
+      layers.forEach((el, i) => {
+        el.classList.toggle('active', i === idx);
       });
-
-      // 마지막(text-5)에서만 신청 버튼 표시
-      applyArea.classList.toggle('visible', index === layers.length - 1);
+      // 마지막 장(text-5)에서만 버튼 노출
+      applyOverlay.classList.toggle('visible', idx === layers.length - 1);
     }
 
     function nextSlide() {
@@ -178,44 +201,46 @@
       }
     }
 
-    function handleAdvance() {
+    function advance() {
       startMusic();
       nextSlide();
     }
 
-    document.addEventListener('click', handleAdvance);
+    document.addEventListener('click', advance);
+
     document.addEventListener('keydown', (e) => {
       if ([' ', 'Enter', 'ArrowDown', 'ArrowRight'].includes(e.key)) {
         e.preventDefault();
-        handleAdvance();
+        advance();
       }
     });
+
     document.addEventListener('wheel', (e) => {
       if (Math.abs(e.deltaY) > 10) {
         e.preventDefault();
-        handleAdvance();
+        advance();
       }
     }, { passive: false });
 
-    let touchStartY = null;
+    let tsY = null;
     document.addEventListener('touchstart', (e) => {
       if (e.touches.length === 1) {
-        touchStartY = e.touches[0].clientY;
+        tsY = e.touches[0].clientY;
       }
     }, { passive: true });
 
     document.addEventListener('touchend', (e) => {
-      if (touchStartY === null) {
-        handleAdvance();
+      if (tsY === null) {
+        advance();
         return;
       }
-      const touchEndY = e.changedTouches[0].clientY;
-      if (Math.abs(touchStartY - touchEndY) > 20) {
-        handleAdvance();
+      const diff = tsY - e.changedTouches[0].clientY;
+      if (Math.abs(diff) > 20) {
+        advance();
       } else {
-        handleAdvance();
+        advance();
       }
-      touchStartY = null;
+      tsY = null;
     });
 
     showSlide(currentIndex);
