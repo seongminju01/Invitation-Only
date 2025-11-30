@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>Invitation Only</title>
+  <title>Invitation-Only</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex, nofollow" />
   <style>
@@ -53,7 +53,7 @@
       pointer-events: none;
 
       opacity: 0;
-      transition: opacity 0.6s ease; /* 더 빠른 페이드 */
+      transition: opacity 0.6s ease; /* 빠른 페이드 */
     }
 
     /* 현재 보여지는 레이어 */
@@ -96,9 +96,12 @@
       화면을 <strong>탭/클릭</strong>하거나 <strong>스크롤</strong>하면 다음 단계로 넘어갑니다.
     </p>
     <p class="footer">
-      The Hidden Stage – Stage Project Hidden Members Only
+      Invitation-Only
     </p>
   </main>
+
+  <!-- 배경 음악 (첫 상호작용 시 재생) -->
+  <audio id="bgm" src="bgm.mp3" loop></audio>
 
   <script>
     // 텍스트 레이어들 모으기
@@ -106,6 +109,20 @@
     let currentIndex = 0;
     let lastTriggerTime = 0;
     const MIN_INTERVAL = 700; // 0.7초 안에는 연속 입력 무시
+
+    // 배경음악 제어
+    const bgm = document.getElementById('bgm');
+    let bgmStarted = false;
+
+    function startMusic() {
+      if (!bgmStarted && bgm) {
+        bgm.volume = 0.7; // 기본 볼륨 (0.0 ~ 1.0)
+        bgm.play().catch(() => {
+          // 브라우저가 막으면 그냥 조용히 무시
+        });
+        bgmStarted = true;
+      }
+    }
 
     function showSlide(index) {
       layers.forEach((layer, i) => {
@@ -129,9 +146,14 @@
       // 마지막 슬라이드에서는 더 이상 넘어가지 않음
     }
 
+    function handleAdvance() {
+      startMusic();
+      nextSlide();
+    }
+
     // 클릭 / 탭
     document.addEventListener('click', () => {
-      nextSlide();
+      handleAdvance();
     });
 
     // 키보드 (스페이스, 엔터, 아래/오른쪽 화살표)
@@ -139,7 +161,7 @@
       const keys = [' ', 'Enter', 'ArrowDown', 'ArrowRight'];
       if (keys.includes(e.key)) {
         e.preventDefault();
-        nextSlide();
+        handleAdvance();
       }
     });
 
@@ -147,7 +169,7 @@
     document.addEventListener('wheel', (e) => {
       if (Math.abs(e.deltaY) > 10) {
         e.preventDefault();
-        nextSlide();
+        handleAdvance();
       }
     }, { passive: false });
 
@@ -161,18 +183,16 @@
 
     document.addEventListener('touchend', (e) => {
       if (touchStartY === null) {
-        nextSlide(); // 그냥 탭처럼 처리
+        handleAdvance(); // 그냥 탭처럼 처리
         return;
       }
       const touchEndY = (e.changedTouches[0] || e.touches[0]).clientY;
       const diffY = touchStartY - touchEndY;
 
-      // 살짝 위/아래로 스와이프해도 다음 단계
       if (Math.abs(diffY) > 20) {
-        nextSlide();
+        handleAdvance();
       } else {
-        // 거의 움직이지 않았으면 탭으로 간주
-        nextSlide();
+        handleAdvance();
       }
       touchStartY = null;
     });
