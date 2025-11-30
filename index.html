@@ -53,7 +53,7 @@
       pointer-events: none;
 
       opacity: 0;
-      transition: opacity 1.2s ease; /* 천천히 페이드 */
+      transition: opacity 0.6s ease; /* 더 빠른 페이드 */
     }
 
     /* 현재 보여지는 레이어 */
@@ -82,15 +82,18 @@
       <!-- 고정 배경 포스터 -->
       <img class="poster-bg" src="bg-poster.png" alt="The Hidden Stage Background" />
 
-      <!-- 투명 PNG 텍스트 (겹쳐 놓고 JS로 하나씩만 보이게) -->
-      <img class="text-layer active" src="text-1.png" alt="Text 1" />
+      <!-- 맨 처음에 나올 텍스트 -->
+      <img class="text-layer active" src="text-0.png" alt="Text 0" />
+
+      <!-- 이후 단계 텍스트 -->
+      <img class="text-layer" src="text-1.png" alt="Text 1" />
       <img class="text-layer" src="text-2.png" alt="Text 2" />
       <img class="text-layer" src="text-3.png" alt="Text 3" />
       <img class="text-layer" src="text-4.png" alt="Text 4" />
     </div>
 
     <p class="hint">
-      화면을 <strong>탭/클릭</strong>하거나 <strong>아래로 스크롤</strong>하면 다음 단계로 넘어갑니다.
+      화면을 <strong>탭/클릭</strong>하거나 <strong>스크롤</strong>하면 다음 단계로 넘어갑니다.
     </p>
     <p class="footer">
       The Hidden Stage – Stage Project Hidden Members Only
@@ -102,7 +105,7 @@
     const layers = Array.from(document.querySelectorAll('.text-layer'));
     let currentIndex = 0;
     let lastTriggerTime = 0;
-    const MIN_INTERVAL = 700; // 0.7초 안에는 연속 입력 무시 (너무 빨리 안 넘어가게)
+    const MIN_INTERVAL = 700; // 0.7초 안에는 연속 입력 무시
 
     function showSlide(index) {
       layers.forEach((layer, i) => {
@@ -127,7 +130,7 @@
     }
 
     // 클릭 / 탭
-    document.addEventListener('click', (e) => {
+    document.addEventListener('click', () => {
       nextSlide();
     });
 
